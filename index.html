@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Fact Sheet Cawangan Penjagaan</title>
+<style>
+:root {
+  --bg:#f6f8fc; --surface:rgba(255,255,255,.94); --surface2:#eef3fb; --surface3:#f8fafc;
+  --border:rgba(36,54,101,.12); --border-strong:rgba(37,99,235,.22);
+  --text:#122033; --text-dim:#64748b; --muted:#94a3b8; --accent:#1d4ed8;
+  --green:#15803d; --green-dim:rgba(22,163,74,.12); --amber:#b7791f; --amber-dim:rgba(245,158,11,.14);
+  --red:#b91c1c; --red-dim:rgba(239,68,68,.12); --purple:#7c3aed; --purple-dim:rgba(124,58,237,.10);
+  --shadow:0 20px 55px rgba(15,23,42,.08); --shadow-soft:0 10px 30px rgba(15,23,42,.06); --radius:22px;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body {
+  min-height:100vh; overflow-x:hidden; color:var(--text);
+  font-family:"DM Sans", "Segoe UI", system-ui, -apple-system, sans-serif; font-size:17px;
+  background:
+    radial-gradient(circle at top left, rgba(37,99,235,.14), transparent 30%),
+    radial-gradient(circle at 90% 12%, rgba(20,184,166,.12), transparent 28%),
+    linear-gradient(180deg,#f8fbff 0%,var(--bg) 100%);
+}
+body::before { content:""; position:fixed; inset:0; pointer-events:none; background-image:linear-gradient(rgba(15,23,42,.035) 1px, transparent 1px),linear-gradient(90deg, rgba(15,23,42,.03) 1px, transparent 1px); background-size:42px 42px; mask-image:linear-gradient(to bottom, rgba(0,0,0,.35), transparent 55%); }
+.app { position:relative; z-index:1; max-width:1550px; margin:0 auto; padding:34px 34px 52px; }
+.header { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:24px; margin-bottom:22px; padding:30px; border:1px solid var(--border); border-radius:30px; background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(239,246,255,.92)),var(--surface); box-shadow:var(--shadow); overflow:hidden; position:relative; }
+.header::after { content:""; position:absolute; width:340px; height:340px; border-radius:999px; right:-145px; top:-170px; background:radial-gradient(circle, rgba(37,99,235,.18), transparent 70%); }
+.header>* { position:relative; z-index:1; }
+.header h1 { font-size:clamp(34px,4vw,54px); line-height:.98; letter-spacing:-1.8px; font-weight:900; max-width:980px; }
+.header h1 span { color:var(--accent); background:linear-gradient(90deg,#1d4ed8,#0f766e); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+.header-sub { margin-top:14px; color:var(--text-dim); font-size:20px; font-weight:600; line-height:1.45; }
+.period-badge { display:inline-flex; align-items:center; justify-content:center; min-width:220px; background:#fff; border:1px solid var(--border-strong); border-radius:999px; padding:14px 24px; color:var(--accent); font-weight:900; box-shadow:var(--shadow-soft); white-space:nowrap; }
+.data-source { display:inline-flex; align-items:center; gap:8px; margin-top:16px; padding:8px 12px; border-radius:999px; background:rgba(255,255,255,.72); border:1px solid var(--border); font-size:14px; font-weight:800; color:var(--text-dim); }
+.dot { width:9px; height:9px; border-radius:50%; background:var(--green); box-shadow:0 0 0 4px rgba(22,163,74,.12); display:inline-block; }
+.nav-tabs { display:flex; gap:8px; margin-bottom:20px; overflow-x:auto; padding:7px; border:1px solid var(--border); border-radius:18px; background:rgba(255,255,255,.68); box-shadow:0 8px 22px rgba(15,23,42,.04); scrollbar-width:thin; }
+.nav-tab { padding:13px 20px; border-radius:13px; font-size:16px; font-weight:900; cursor:pointer; border:1px solid transparent; background:transparent; color:var(--text-dim); transition:all .2s ease; white-space:nowrap; }
+.nav-tab:hover { color:var(--accent); background:rgba(37,99,235,.07); }
+.nav-tab.active { background:#fff; color:var(--accent); border-color:var(--border-strong); box-shadow:0 9px 22px rgba(37,99,235,.10); }
+.toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; margin-bottom:18px; }
+.search { flex:1 1 260px; min-width:220px; border:1px solid var(--border); border-radius:999px; padding:12px 16px; font:inherit; font-size:15px; color:var(--text); background:#fff; box-shadow:var(--shadow-soft); }
+.select { border:1px solid var(--border); border-radius:999px; padding:12px 16px; font:inherit; font-size:15px; font-weight:800; color:var(--text-dim); background:#fff; box-shadow:var(--shadow-soft); }
+.summary-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:16px; margin-bottom:22px; }
+.summary-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:22px 22px 20px; position:relative; overflow:hidden; box-shadow:var(--shadow-soft); min-height:136px; }
+.summary-card::before { content:""; position:absolute; inset:0 0 auto 0; height:4px; background:var(--accent); }
+.summary-card::after { content:""; position:absolute; right:-38px; top:-50px; width:120px; height:120px; border-radius:999px; background:rgba(37,99,235,.08); }
+.summary-card.green::before { background:linear-gradient(90deg,var(--green),#22c55e); } .summary-card.green::after { background:var(--green-dim); }
+.summary-card.amber::before { background:linear-gradient(90deg,var(--amber),#f59e0b); } .summary-card.amber::after { background:var(--amber-dim); }
+.summary-card.red::before { background:linear-gradient(90deg,var(--red),#ef4444); } .summary-card.red::after { background:var(--red-dim); }
+.summary-card.purple::before { background:linear-gradient(90deg,var(--purple),#a78bfa); } .summary-card.purple::after { background:var(--purple-dim); }
+.summary-card .label { position:relative; z-index:1; font-size:13px; text-transform:uppercase; letter-spacing:.9px; color:var(--text-dim); margin-bottom:12px; font-weight:900; }
+.summary-card .value { position:relative; z-index:1; font-size:clamp(30px,3.2vw,42px); letter-spacing:-1.6px; line-height:1; font-weight:900; }
+.summary-card .sub { position:relative; z-index:1; font-size:15px; color:var(--text-dim); margin-top:10px; line-height:1.35; }
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+.panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; box-shadow:var(--shadow-soft); overflow:hidden; }
+.panel.full { grid-column:1/-1; }
+.panel-title { font-size:22px; font-weight:900; margin-bottom:5px; letter-spacing:-.4px; }
+.panel-sub { font-size:15px; color:var(--text-dim); margin-bottom:18px; line-height:1.45; }
+.module-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px; }
+.module-card { border:1px solid var(--border); background:#fff; border-radius:18px; padding:18px; box-shadow:var(--shadow-soft); cursor:pointer; transition:.2s ease; position:relative; overflow:hidden; }
+.module-card:hover { transform:translateY(-2px); border-color:var(--border-strong); }
+.module-card .type { display:inline-flex; border:1px solid var(--border); background:var(--surface3); border-radius:999px; padding:6px 10px; font-size:11px; font-weight:900; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px; }
+.module-card h3 { margin:10px 0 8px; font-size:18px; letter-spacing:-.25px; line-height:1.2; }
+.module-card p { color:var(--text-dim); font-size:14px; line-height:1.35; }
+.chip-row { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.chip { border-radius:999px; padding:6px 9px; background:var(--surface2); color:var(--text-dim); font-size:12px; font-weight:900; }
+.chip.red { color:var(--red); background:var(--red-dim); } .chip.amber { color:var(--amber); background:var(--amber-dim); } .chip.green { color:var(--green); background:var(--green-dim); }
+.table-wrap { overflow:auto; border:1px solid var(--border); border-radius:16px; background:#fff; }
+table { width:100%; border-collapse:separate; border-spacing:0; min-width:760px; }
+th, td { padding:11px 12px; border-bottom:1px solid rgba(15,23,42,.08); border-right:1px solid rgba(15,23,42,.06); text-align:left; vertical-align:top; font-size:14px; }
+th { position:sticky; top:0; z-index:2; background:var(--surface2); color:var(--text); font-weight:900; }
+td { color:var(--text); background:#fff; }
+tr:hover td { background:#f8fafc; }
+td.err { color:var(--red); background:var(--red-dim); font-weight:900; }
+td.empty { color:var(--muted); font-style:italic; }
+.bar-chart { display:flex; flex-direction:column; gap:12px; }
+.bar-row { display:grid; grid-template-columns:170px minmax(120px,1fr) 78px; align-items:center; gap:14px; }
+.bar-label { font-size:14px; color:var(--text-dim); text-align:right; font-weight:900; }
+.bar-track { height:30px; background:var(--surface2); border-radius:999px; position:relative; overflow:hidden; box-shadow:inset 0 0 0 1px rgba(30,41,59,.04); }
+.bar-fill { height:100%; border-radius:999px; background:linear-gradient(90deg,#1d4ed8,#0f766e); min-width:2px; }
+.bar-target { position:absolute; top:0; height:100%; width:2px; background:#0f172a; opacity:.38; }
+.bar-value { font-size:14px; font-weight:900; text-align:right; }
+.legend { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+.legend-item { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:800; color:var(--text-dim); background:#fff; border:1px solid var(--border); border-radius:999px; padding:7px 12px; }
+.legend-dot { width:12px; height:12px; border-radius:999px; }
+.notice { border:1px solid var(--border-strong); background:rgba(37,99,235,.05); border-radius:18px; padding:16px 18px; color:var(--text-dim); line-height:1.55; font-size:15px; font-weight:700; }
+.notice strong { color:var(--text); }
+.notice.warn { border-color:rgba(245,158,11,.35); background:rgba(245,158,11,.08); }
+.notice.bad { border-color:rgba(239,68,68,.35); background:rgba(239,68,68,.08); }
+.line-svg { width:100%; height:260px; border:1px solid rgba(15,23,42,.06); border-radius:14px; background:linear-gradient(180deg,var(--surface3),#fff); }
+.footer-bar { text-align:center; padding:28px 0 8px; font-size:14px; color:var(--text-dim); border-top:1px solid var(--border); margin-top:36px; }
+@media(max-width:1000px) { .header { grid-template-columns:1fr; } .grid { grid-template-columns:1fr; } }
+@media(max-width:720px) { .app { padding:16px 14px; } .header { padding:20px; border-radius:20px; } .header h1 { font-size:28px; } .header-sub { font-size:16px; } .summary-row { grid-template-columns:1fr 1fr; gap:10px; } .summary-card { padding:16px; min-height:116px; border-radius:16px; } .summary-card .label { font-size:11px; } .summary-card .value { font-size:26px; } .nav-tab { font-size:13px; padding:10px 13px; } .panel { padding:16px; border-radius:16px; } .bar-row { grid-template-columns:105px minmax(80px,1fr) 60px; gap:8px; } .bar-label,.bar-value { font-size:12px; } }
+@media print { body { background:#fff; font-size:11px; } body::before,.nav-tabs,.toolbar { display:none!important; } .header,.summary-card,.panel { box-shadow:none; border:1px solid #ddd; } .panel { break-inside:avoid; } @page { margin:1.5cm; size:A4 landscape; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div>
+      <h1>Dashboard Fact Sheet <span>Cawangan Penjagaan</span></h1>
+      <div class="header-sub">Bahagian Kesihatan Pergigian Negeri Sabah · Semua tab daripada workbook asal</div>
+      <div class="data-source"><span class="dot"></span><span id="sourceStatus">Sumber: Workbook upload / fallback data</span></div>
+    </div>
+    <div class="period-badge" id="periodBadge">2020–2025 / 2025</div>
+  </div>
+
+  <div class="nav-tabs" id="mainTabs">
+    <button class="nav-tab active" data-view="overview">RINGKASAN</button>
+    <button class="nav-tab" data-view="modules">SEMUA TAB</button>
+    <button class="nav-tab" data-view="viewer">PAPARAN TAB</button>
+    <button class="nav-tab" data-view="quality">SEMAKAN DATA</button>
+    <button class="nav-tab" data-view="setup">SETUP GOOGLE SHEET</button>
+  </div>
+
+  <div id="content"></div>
+  <div class="footer-bar">Copyright &copy; Bahagian Kesihatan Pergigian Negeri Sabah. All rights reserved.</div>
+</div>
+<script>
+// =======================================================
+// LIVE GOOGLE SHEET SETUP
+// =======================================================
+// Paste each tab's published CSV URL below. If left blank, the dashboard uses
+// the embedded data extracted from the uploaded Excel workbook.
+const SHEET_CSV_URLS = {
+  "Overall WTP x population": "",
+  "Yearly Level at Reticulation": "",
+  "Yearly Distribution WTP x Feede": "",
+  "% Utilise (P+S)": "",
+  "% Utilise (P+HBS+NHBS)": "",
+  "Utilisation by Speciality": "",
+  "% Coverage Primary Care": "",
+  "% Schoolchildren KS": "",
+  "% School coverage": "",
+  "FS": "",
+  "% KS OKU": "",
+  "% amalgam vs CR SR": "",
+  "% amalgam vs CR SM": "",
+  "% MBK BK": "",
+  "% MBK 6yo": "",
+  "% BK 12yo": "",
+  "% BK 16yo": ""
+};
+
+let WORKBOOK = [{"name": "1. Fluoridation", "group": "Fluoridation", "type": "divider", "range": "A1:Z40", "title": "1. Fluoridation", "values": [], "nonempty": 0, "errors": 0}, {"name": "Overall WTP x population", "group": "Fluoridation", "type": "yearly", "range": "A1:G32", "title": "Number of Water Treatment Plants and Population Receiving Fluoridated Water Supllies Sabah (2020-2025)", "values": [[null, "Number of Water Treatment Plants and Population Receiving Fluoridated Water Supllies Sabah (2020-2025)", null, null, null, null, null], [null, "Year", "Total Number of Water Treatment Plants", "Number and Percentage of Water Treatment Plants with Fluoride Feeders", "Total Population", "Estimated Population Receiving Fluoridated Water", null], [null, null, null, null, null, "n", "%"], [null, 2020, null, null, null, null, "#DIV/0!"], [null, 2021, null, null, null, null, "#DIV/0!"], [null, 2022, null, null, null, null, "#DIV/0!"], [null, 2023, null, null, null, null, "#DIV/0!"], [null, 2024, null, null, null, null, "#DIV/0!"], [null, 2025, null, null, null, null, "#DIV/0!"], [null, 2026, null, null, null, null, "#DIV/0!"], [null, 2027, null, null, null, null, "#DIV/0!"], [null, 2028, null, null, null, null, "#DIV/0!"], [null, 2029, null, null, null, null, "#DIV/0!"], [null, 2030, null, null, null, null, "#DIV/0!"], [null, 2031, null, null, null, null, "#DIV/0!"], [null, 2032, null, null, null, null, "#DIV/0!"], [null, 2033, null, null, null, null, "#DIV/0!"], [null, 2034, null, null, null, null, "#DIV/0!"], [null, 2035, null, null, null, null, "#DIV/0!"], [null, 2036, null, null, null, null, "#DIV/0!"], [null, 2037, null, null, null, null, "#DIV/0!"], [null, 2038, null, null, null, null, "#DIV/0!"], [null, 2039, null, null, null, null, "#DIV/0!"], [null, 2040, null, null, null, null, "#DIV/0!"], [null, 2041, null, null, null, null, "#DIV/0!"], [null, 2042, null, null, null, null, "#DIV/0!"], [null, 2043, null, null, null, null, "#DIV/0!"], [null, 2044, null, null, null, null, "#DIV/0!"], [null, 2045, null, null, null, null, "#DIV/0!"]], "nonempty": 60, "errors": 26}, {"name": "Yearly Level at Reticulation", "group": "Fluoridation", "type": "district", "range": "A1:J34", "title": "Fluoride Level at Reticulations Points by Kawasan, 2025", "values": [[null, "Fluoride Level at Reticulations Points by Kawasan, 2025", null, null, null, null, null, null, null, null], [null, "Kawasan", "WTP", "Total Readings", "Fluoride Readings", null, null, null, null, null], [null, null, null, null, "0.4 - 0.6 ppm", null, "< 0.4 ppm (Std. < 25%)", null, "> 0.6 ppm (Std. <7%)", null], [null, null, null, null, "Total", "%", "Total", "%", "Total", "%"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, null, null, null, null, "#DIV/0!", null, "#DIV/0!", null, "#DIV/0!"], [null, "Sabah", null, 0, 0, "#DIV/0!", 0, "#DIV/0!", 0, "#DIV/0!"]], "nonempty": 100, "errors": 81}, {"name": "Yearly Distribution WTP x Feede", "group": "Fluoridation", "type": "district", "range": "A1:K33", "title": "Distribution of Water Treatment Plant and Fluoride Feeder by Kawasan and Sector, 2025", "values": [[null, "Distribution of Water Treatment Plant and Fluoride Feeder by Kawasan and Sector, 2025", null, null, null, null, null, null, null, null, null], [null, "Kawasan", "Government", null, null, "Private", null, null, "Total", null, null], [null, null, "No of WTP", "With FF", "% with FF", "No of WTP", "With FF", "% with FF", "No of WTP", "With FF", "% with FF"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, null, null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, "Sabah", 0, 0, "#DIV/0!", 0, 0, "#DIV/0!", 0, 0, "#DIV/0!"]], "nonempty": 154, "errors": 81}, {"name": "2. Utilisation of Oral Healthca", "group": "Utilisation of Oral Healthcare", "type": "divider", "range": "A1:Z40", "title": "2. Utilisation of Oral Healthca", "values": [], "nonempty": 0, "errors": 0}, {"name": "% Utilise (P+S)", "group": "Utilisation of Oral Healthcare", "type": "yearly", "range": "A1:G31", "title": "Percentage of Population Utilising Oral Healthcare (Primary & Specialist) and Average Attendance BKP Sabah", "values": [[null, "Percentage of Population Utilising Oral Healthcare (Primary & Specialist) and Average Attendance BKP Sabah", null, null, null, null, null], [null, "Year", "Population", "New Patient", "Total Attendance", "% New Patient", "Average Attendance"], [null, 2020, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2021, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2022, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2023, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2024, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2025, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2026, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2027, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2028, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2029, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2030, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2031, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2032, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2033, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2034, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2035, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2036, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2037, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2038, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2039, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2040, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2041, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2042, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2043, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2044, null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2045, null, null, null, "#DIV/0!", "#DIV/0!"]], "nonempty": 85, "errors": 52}, {"name": "% Utilise (P+HBS+NHBS)", "group": "Utilisation of Oral Healthcare", "type": "yearly", "range": "A1:O32", "title": "Percentage of Population Utilising Oral Healthcare (Primary & Specialist) and Average Attendance BKP Sabah", "values": [[null, "Percentage of Population Utilising Oral Healthcare (Primary & Specialist) and Average Attendance BKP Sabah", null, null, null, null, null, null, null, null, null, null, null, null, null], [null, null, null, "Primary Oral Healthcare", null, null, "Hospital Based Specialist Oral Healthcare", null, null, "Non-Hospital Based Specialist Oral Healthcare", null, null, "Total", null, null], [null, "Year", "Population", "New Patient", "Total Attendance", "% of Utilisation", "New Patient", "Total Attendance", "% of Utilisation", "New Patient", "Total Attendance", "% of Utilisation", "New Patient", "Total Attendance", "% of Utilisation"], [null, 2020, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2021, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2022, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2023, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2024, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2025, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2026, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2027, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2028, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2029, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2030, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2031, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2032, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2033, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2034, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2035, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2036, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2037, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2038, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2039, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2040, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2041, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2042, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2043, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2044, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"], [null, 2045, null, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", 0, 0, "#DIV/0!"]], "nonempty": 201, "errors": 104}, {"name": "3. Coverage", "group": "Coverage & Clinical Outcomes", "type": "divider", "range": "A1:Z40", "title": "3. Coverage", "values": [], "nonempty": 0, "errors": 0}, {"name": "Utilisation by Speciality", "group": "Coverage & Clinical Outcomes", "type": "yearly", "range": "A1:V33", "title": "Utilisation of Specialist Oral Healthcare by Specialty", "values": [[null, "Utilisation of Specialist Oral Healthcare by Specialty", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, null, "Attendances", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, null, "Oral & Maxillofaical Surgery", null, "Orthodontics", null, null, null, null, null, "Periodontics", null, "Paediatric Dentistry", null, "Oral Pathology & Oral Medicine", null, "Restorative Dentistry", null, "Special Care Dentistry", null, "Forensic Dentistry", null], [null, "Year", "New", "Total", "New < 17 yrs", "Old < 17 yrs", "New > 17 yrs", "Old > 17 yrs", "New", "Total", "New", "Total", "New", "Total", "New", "Total", "New", "Total", "New", "Total", "New", "Total"], [null, 2020, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2021, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2022, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2023, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2024, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2025, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2026, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2027, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2028, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2029, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2030, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2031, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2032, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2033, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2034, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2035, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2036, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2037, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2038, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2039, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2040, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2041, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2042, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2043, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2044, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2045, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]], "nonempty": 57, "errors": 0}, {"name": "% Coverage Primary Care", "group": "Coverage & Clinical Outcomes", "type": "yearly", "range": "A1:W32", "title": "Population Coverage of Primary Oral Healthcare", "values": [[null, "Population Coverage of Primary Oral Healthcare", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, null, "Toddler", null, null, "Pre School Children", null, null, "Primary Schoolchildren", null, null, "Secondary Schoolchildren", null, null, "Antenatal", null, null, "Adults", null, null, "Elderly", null, null], [null, "Year", "No. of Pts", "Population", "% Coverage", "No. of Pts", "Population", "% Coverage", "No. of Pts", "Population", "% Coverage", "No. of Pts", "Population", "% Coverage", "No. of Pts", "Population", "% Coverage", "No. of Pts", "Population", "% Coverage", "No. of Pts", "Population", "% Coverage"], [null, 2020, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2021, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2022, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2023, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2024, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2025, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2026, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2027, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2028, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2029, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2030, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2031, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2032, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2033, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2034, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2035, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2036, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2037, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2038, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2039, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2040, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2041, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2042, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2043, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2044, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"], [null, 2045, null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!", null, null, "#DIV/0!"]], "nonempty": 238, "errors": 182}, {"name": "% Schoolchildren KS", "group": "Coverage & Clinical Outcomes", "type": "yearly", "range": "A1:Q32", "title": "Primary and Secondary School Children Rendered Orally Fit", "values": [[null, "Primary and Secondary School Children Rendered Orally Fit", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], [null, null, "Primary School Children", null, null, null, null, "Secondary School Children", null, null, null, null, "Primary and Secondary School Children", null, null, null, null], [null, "Year", "Enrolment", "No of Patients", "Case Complete", "% Orally Fit (Enrolment)", "% Orally Fit (New Patient)", "Enrolment", "No of Patients", "Case Complete", "% Coverage", "% Orally Fit (New Patient)", "Enrolment", "No of Patients", "Case Complete", "% Coverage", "% Orally Fit (New Patient)"], [null, 2020, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2021, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2022, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2023, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2024, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2025, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2026, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2027, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2028, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2029, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2030, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2031, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2032, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2033, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2034, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2035, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2036, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2037, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2038, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2039, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2040, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2041, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2042, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2043, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2044, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"], [null, 2045, null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!", null, null, null, "#DIV/0!", "#DIV/0!"]], "nonempty": 202, "errors": 156}, {"name": "% School coverage", "group": "Coverage & Clinical Outcomes", "type": "yearly", "range": "A1:L32", "title": "School Coverage", "values": [[null, "School Coverage", null, null, null, null, null, null, null, null, null, null], [null, null, "Primary School Children", null, null, null, null, "Secondary School Children", null, null, null, null], [null, "Year", "No of School", "Visited", "%", "Covered (case complete >90%", "%", "No of School", "Visited", "%", "Covered (case complete >90%", "%"], [null, 2020, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2021, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2022, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2023, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2024, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2025, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2026, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2027, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2028, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2029, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2030, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2031, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2032, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2033, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2034, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2035, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2036, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2037, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2038, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2039, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2040, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2041, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2042, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2043, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2044, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2045, null, null, "#DIV/0!", null, "#DIV/0!", null, null, "#DIV/0!", null, "#DIV/0!"]], "nonempty": 144, "errors": 104}, {"name": "FS", "group": "Coverage & Clinical Outcomes", "type": "yearly", "range": "A1:D31", "title": "Provision of Fissure Sealant", "values": [[null, "Provision of Fissure Sealant", null, null], [null, "Year", "No of Patients", "No of Teeth Sealed"], [null, 2020, null, null], [null, 2021, null, null], [null, 2022, null, null], [null, 2023, null, null], [null, 2024, null, null], [null, 2025, null, null], [null, 2026, null, null], [null, 2027, null, null], [null, 2028, null, null], [null, 2029, null, null], [null, 2030, null, null], [null, 2031, null, null], [null, 2032, null, null], [null, 2033, null, null], [null, 2034, null, null], [null, 2035, null, null], [null, 2036, null, null], [null, 2037, null, null], [null, 2038, null, null], [null, 2039, null, null], [null, 2040, null, null], [null, 2041, null, null], [null, 2042, null, null], [null, 2043, null, null], [null, 2044, null, null], [null, 2045, null, null]], "nonempty": 30, "errors": 0}, {"name": "% KS OKU", "group": "Coverage & Clinical Outcomes", "type": "yearly", "range": "A1:F31", "title": "Percentage Case Completion Among People with DIsabilities", "values": [[null, "Percentage Case Completion Among People with DIsabilities", null, null, null, null], [null, "Year", "No of Patients", "Total Attendance", "Case Complete", "% Case Completion"], [null, 2020, null, null, null, "#DIV/0!"], [null, 2021, null, null, null, "#DIV/0!"], [null, 2022, null, null, null, "#DIV/0!"], [null, 2023, null, null, null, "#DIV/0!"], [null, 2024, null, null, null, "#DIV/0!"], [null, 2025, null, null, null, "#DIV/0!"], [null, 2026, null, null, null, "#DIV/0!"], [null, 2027, null, null, null, "#DIV/0!"], [null, 2028, null, null, null, "#DIV/0!"], [null, 2029, null, null, null, "#DIV/0!"], [null, 2030, null, null, null, "#DIV/0!"], [null, 2031, null, null, null, "#DIV/0!"], [null, 2032, null, null, null, "#DIV/0!"], [null, 2033, null, null, null, "#DIV/0!"], [null, 2034, null, null, null, "#DIV/0!"], [null, 2035, null, null, null, "#DIV/0!"], [null, 2036, null, null, null, "#DIV/0!"], [null, 2037, null, null, null, "#DIV/0!"], [null, 2038, null, null, null, "#DIV/0!"], [null, 2039, null, null, null, "#DIV/0!"], [null, 2040, null, null, null, "#DIV/0!"], [null, 2041, null, null, null, "#DIV/0!"], [null, 2042, null, null, null, "#DIV/0!"], [null, 2043, null, null, null, "#DIV/0!"], [null, 2044, null, null, null, "#DIV/0!"], [null, 2045, null, null, null, "#DIV/0!"]], "nonempty": 58, "errors": 26}, {"name": "% amalgam vs CR SR", "group": "Coverage & Clinical Outcomes", "type": "yearly", "range": "A1:G31", "title": "Usage of Amalgam and Tooth-Cloured Filling Among Primary School Children", "values": [[null, "Usage of Amalgam and Tooth-Cloured Filling Among Primary School Children", null, null, null, null, null], [null, "Year", "Total Restoration", "Amalgam Restoration", "%", "Tooth-Coloured Restoration", "%"], [null, 2020, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2021, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2022, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2023, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2024, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2025, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2026, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2027, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2028, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2029, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2030, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2031, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2032, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2033, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2034, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2035, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2036, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2037, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2038, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2039, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2040, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2041, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2042, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2043, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2044, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2045, null, null, "#DIV/0!", null, "#DIV/0!"]], "nonempty": 85, "errors": 52}, {"name": "% amalgam vs CR SM", "group": "Coverage & Clinical Outcomes", "type": "yearly", "range": "A1:G31", "title": "Usage of Amalgam and Tooth-Cloured Filling Among Secondary School Children", "values": [[null, "Usage of Amalgam and Tooth-Cloured Filling Among Secondary School Children", null, null, null, null, null], [null, "Year", "Total Restoration", "Amalgam Restoration", "%", "Tooth-Coloured Restoration", "%"], [null, 2020, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2021, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2022, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2023, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2024, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2025, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2026, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2027, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2028, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2029, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2030, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2031, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2032, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2033, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2034, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2035, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2036, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2037, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2038, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2039, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2040, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2041, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2042, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2043, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2044, null, null, "#DIV/0!", null, "#DIV/0!"], [null, 2045, null, null, "#DIV/0!", null, "#DIV/0!"]], "nonempty": 85, "errors": 52}, {"name": "% MBK BK", "group": "Coverage & Clinical Outcomes", "type": "yearly", "range": "A1:N32", "title": "Caries Free Status of 6, 12, 16 Year Olds School Children", "values": [[null, "Caries Free Status of 6, 12, 16 Year Olds School Children", null, null, null, null, null, null, null, null, null, null, null, null], [null, null, "6 year olds", null, null, null, "12 year olds", null, null, null, "16 year olds", null, null, null], [null, "Year", "NOHP Goals", "% dfx = 0", "NOHP Target", "Mean dfx", "NOHP Goals", "% DMFX = 0", "NOHP Target", "Mean DMFX", "NOHP Goals", "% DMFX = 0", "NOHP Target", "Mean DMFX"], [null, 2020, "> 50% (5 year olds)", null, "dfx < 2", null, "> 80%", null, "DMFX < 0.6", null, "> 70%", null, "DMFX < 1.5", null], [null, 2021, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2022, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2023, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2024, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2025, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2026, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2027, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2028, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2029, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2030, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2031, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2032, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2033, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2034, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2035, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2036, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2037, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2038, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2039, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2040, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2041, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2042, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2043, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2044, null, null, null, null, null, null, null, null, null, null, null, null], [null, 2045, null, null, null, null, null, null, null, null, null, null, null, null]], "nonempty": 49, "errors": 0}, {"name": "% MBK 6yo", "group": "Coverage & Clinical Outcomes", "type": "district", "range": "A1:E14", "title": "Caries Free Status of 6 Year Olds School Children by Kawasan, 2025", "values": [[null, "Caries Free Status of 6 Year Olds School Children by Kawasan, 2025", null, null, null], [null, "Kawasan", "No of Children Treated", "No of Children with Caries Free Mouth (dfx=0, DMFX=0)", "% Children with Caries Free Mouth (Target: >50%)"], [null, "Kota Kinabalu", null, null, null], [null, "Sandakan", null, null, null], [null, "Tawau", null, null, null], [null, "Keningau", null, null, null], [null, "Kudat", null, null, null], [null, "Beaufort", null, null, null], [null, "Kota Belud", null, null, null], [null, "Lahad Datu", null, null, null], [null, "Penampang", null, null, null]], "nonempty": 14, "errors": 0}, {"name": "% BK 12yo", "group": "Coverage & Clinical Outcomes", "type": "district", "range": "A1:G14", "title": "Caries Free Status of 12 Year Olds School Children by Kawasan, 2025", "values": [[null, "Caries Free Status of 12 Year Olds School Children by Kawasan, 2025", null, null, null, null, null], [null, "Kawasan", "No of Children Treated", "No of Children with Caries Free Mouth (DMFX=0)", "% Children with Caries Free Mouth (Target: >80%)", "Total DMFX", "Mean DMFX"], [null, "Kota Kinabalu", null, null, null, null, "#DIV/0!"], [null, "Sandakan", null, null, null, null, "#DIV/0!"], [null, "Tawau", null, null, null, null, "#DIV/0!"], [null, "Keningau", null, null, null, null, "#DIV/0!"], [null, "Kudat", null, null, null, null, "#DIV/0!"], [null, "Beaufort", null, null, null, null, "#DIV/0!"], [null, "Kota Belud", null, null, null, null, "#DIV/0!"], [null, "Lahad Datu", null, null, null, null, "#DIV/0!"], [null, "Penampang", null, null, null, null, "#DIV/0!"]], "nonempty": 25, "errors": 9}, {"name": "% BK 16yo", "group": "Coverage & Clinical Outcomes", "type": "district", "range": "A1:G14", "title": "Caries Free Status of 16 Year Olds School Children by Kawasan, 2025", "values": [[null, "Caries Free Status of 16 Year Olds School Children by Kawasan, 2025", null, null, null, null, null], [null, "Kawasan", "No of Children Treated", "No of Children with Caries Free Mouth (DMFX=0)", "% Children with Caries Free Mouth (Target: >80%)", "Total DMFX", "Mean DMFX"], [null, "Kota Kinabalu", null, null, null, null, "#DIV/0!"], [null, "Sandakan", null, null, null, null, "#DIV/0!"], [null, "Tawau", null, null, null, null, "#DIV/0!"], [null, "Keningau", null, null, null, null, "#DIV/0!"], [null, "Kudat", null, null, null, null, "#DIV/0!"], [null, "Beaufort", null, null, null, null, "#DIV/0!"], [null, "Kota Belud", null, null, null, null, "#DIV/0!"], [null, "Lahad Datu", null, null, null, null, "#DIV/0!"], [null, "Penampang", null, null, null, null, "#DIV/0!"]], "nonempty": 25, "errors": 9}];
+let ACTIVE_SHEET = null;
+let ACTIVE_GROUP = 'All';
+
+const ERRORS = new Set(['#DIV/0!','#VALUE!','#REF!','#N/A','#NAME?','#NUM!']);
+const groups = ['All', ...Array.from(new Set(WORKBOOK.filter(s => s.type !== 'divider').map(s => s.group)))];
+const dataSheets = () => WORKBOOK.filter(s => s.type !== 'divider');
+
+function esc(x) { return String(x ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function isErr(v) { return typeof v === 'string' && ERRORS.has(v); }
+function isBlank(v) { return v === null || v === undefined || v === ''; }
+function toNum(v) {
+  if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+  if (typeof v !== 'string') return null;
+  if (isErr(v)) return null;
+  const s = v.replace(/,/g,'').replace(/%/g,'').trim();
+  if (!s || s === '-') return null;
+  const n = Number(s);
+  return Number.isFinite(n) ? n : null;
+}
+function fmt(v, isPct=false) {
+  const n = toNum(v);
+  if (n === null) return '—';
+  if (isPct) return n.toFixed(1) + '%';
+  if (Math.abs(n) >= 1000) return n.toLocaleString();
+  return Number.isInteger(n) ? String(n) : n.toFixed(2);
+}
+function countErrors(sheet) { return sheet.values.flat().filter(isErr).length; }
+function countNumeric(sheet) { return sheet.values.flat().filter(v => toNum(v) !== null).length; }
+function countCells(sheet) { return sheet.values.flat().filter(v => !isBlank(v)).length; }
+function extractYears(sheet) {
+  const years = new Set();
+  sheet.values.flat().forEach(v => { const n = toNum(v); if (n && n >= 2020 && n <= 2050) years.add(n); });
+  return [...years].sort((a,b)=>a-b);
+}
+function findHeaderRow(sheet) {
+  let best = 0, score = -1;
+  sheet.values.forEach((row, idx) => {
+    const txt = row.map(c => String(c ?? '').toLowerCase()).join(' ');
+    let s = 0;
+    if (txt.includes('year')) s += 3;
+    if (txt.includes('kawasan')) s += 3;
+    if (txt.includes('%')) s += 2;
+    s += row.filter(c => !isBlank(c)).length * .2;
+    if (idx < 8 && s > score) { best = idx; score = s; }
+  });
+  return best;
+}
+function findPercentCol(sheet) {
+  const hi = findHeaderRow(sheet);
+  for (let r = Math.max(0, hi-2); r <= Math.min(sheet.values.length-1, hi+2); r++) {
+    const row = sheet.values[r] || [];
+    for (let c = 0; c < row.length; c++) {
+      const txt = String(row[c] ?? '').toLowerCase();
+      if (txt.includes('%') || txt.includes('percentage')) return c;
+    }
+  }
+  return -1;
+}
+function findYearCol(sheet) {
+  const hi = findHeaderRow(sheet);
+  for (let r = Math.max(0, hi-2); r <= Math.min(sheet.values.length-1, hi+2); r++) {
+    const row = sheet.values[r] || [];
+    for (let c = 0; c < row.length; c++) if (/year/i.test(String(row[c] ?? ''))) return c;
+  }
+  return 0;
+}
+function targetFromSheet(sheet, pctCol=-1) {
+  const txt = sheet.values.flat().map(v => String(v ?? '')).join(' ');
+  const m = txt.match(/Target:\s*>\s*(\d+(?:\.\d+)?)/i) || txt.match(/Std\.\s*<\s*(\d+(?:\.\d+)?)/i);
+  if (m) return Number(m[1]);
+  if (/16 Year Olds|12 Year Olds/i.test(txt)) return 80;
+  if (/6 Year Olds/i.test(txt)) return 50;
+  return null;
+}
+function tableRows(sheet) { return sheet.values.filter(row => row.some(c => !isBlank(c))); }
+function statusClass(value, target, lowerBetter=false) {
+  const n = toNum(value); if (n === null || target === null) return '';
+  if (lowerBetter) { if (n <= target) return 'green'; if (n <= target*1.3) return 'amber'; return 'red'; }
+  if (n >= target) return 'green'; if (n >= target*.8) return 'amber'; return 'red';
+}
+function rowLabel(row) {
+  for (const c of row) { if (typeof c === 'string' && !isErr(c) && !/^20\d{2}$/.test(c)) return c; }
+  return '';
+}
+function renderCards(cards) {
+  return `<div class="summary-row">${cards.map(c => `<div class="summary-card ${c.color || ''}"><div class="label">${esc(c.label)}</div><div class="value">${esc(c.value)}</div><div class="sub">${esc(c.sub || '')}</div></div>`).join('')}</div>`;
+}
+function moduleTypeLabel(t) { return t === 'district' ? 'Kawasan' : t === 'yearly' ? 'Trend Tahunan' : 'Jadual'; }
+
+async function parseCSV(text) {
+  const lines = text.split(/\r?\n/).filter(l => l.trim().length);
+  return lines.map(line => {
+    const out=[]; let cur='', q=false;
+    for (let i=0;i<line.length;i++) {
+      const ch=line[i];
+      if (ch==='"') { if (q && line[i+1]==='"') { cur+='"'; i++; } else q=!q; }
+      else if (ch===',' && !q) { out.push(cur.trim() || null); cur=''; }
+      else cur+=ch;
+    }
+    out.push(cur.trim() || null);
+    return out;
+  });
+}
+async function loadLiveSources() {
+  let loaded = 0;
+  for (const sheet of WORKBOOK) {
+    const url = SHEET_CSV_URLS[sheet.name];
+    if (!url) continue;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(res.status);
+      const rows = await parseCSV(await res.text());
+      sheet.values = rows.filter(r => r.some(c => !isBlank(c)));
+      sheet.nonempty = countCells(sheet);
+      sheet.errors = countErrors(sheet);
+      loaded++;
+    } catch(e) { console.warn('Failed loading', sheet.name, e); }
+  }
+  document.getElementById('sourceStatus').textContent = loaded ? `Sumber: ${loaded} tab Google Sheet aktif + fallback workbook` : 'Sumber: Workbook upload / fallback data';
+}
+
+function renderOverview() {
+  const ds = dataSheets();
+  const errSheets = ds.filter(s => countErrors(s)>0).length;
+  const numericSheets = ds.filter(s => countNumeric(s)>0).length;
+  const years = [...new Set(ds.flatMap(extractYears))].sort((a,b)=>a-b);
+  let html = renderCards([
+    {label:'Jumlah tab data', value: ds.length, sub:'Tidak termasuk 3 tab pembahagi kategori', color:'purple'},
+    {label:'Kategori utama', value: groups.length-1, sub:'Fluoridation · Utilisation · Coverage', color:'green'},
+    {label:'Tab ada nilai numerik', value: numericSheets, sub:'Banyak tab masih kosong / formula error', color:numericSheets ? 'amber':'red'},
+    {label:'Tab dengan error formula', value: errSheets, sub:'Contoh: #DIV/0! perlu disembunyikan sebelum publish', color:errSheets ? 'red':'green'},
+  ]);
+  html += `<div class="grid"><div class="panel"><div class="panel-title">Keputusan semakan workbook</div><div class="panel-sub">Workbook asal boleh dijadikan dashboard menyeluruh, tetapi perlu modul berbeza mengikut bentuk data.</div>
+  <div class="notice warn"><strong>Kesimpulan:</strong> semua tab relevan boleh dimasukkan. Namun, tab seperti fluoridation dan utilisation sesuai sebagai trend tahunan, manakala tab % BK 6yo/12yo/16yo lebih sesuai sebagai ranking Kawasan. Jangan paksa semua tab menjadi satu carta yang sama.</div></div>
+  <div class="panel"><div class="panel-title">Tahun dikesan</div><div class="panel-sub">Berdasarkan nilai tahun yang wujud dalam jadual.</div>
+  <div class="chip-row">${years.map(y => `<span class="chip">${y}</span>`).join('') || '<span class="chip amber">Tiada tahun dikesan</span>'}</div>
+  <div class="notice" style="margin-top:14px;"><strong>Nota:</strong> paparan trend akan aktif apabila nilai sebenar dimasukkan. Jika semua nilai masih kosong atau #DIV/0!, dashboard akan memaparkan amaran data.</div></div></div>`;
+  html += `<div class="panel full" style="margin-top:18px;"><div class="panel-title">Peta Modul Dashboard</div><div class="panel-sub">Klik mana-mana kad untuk buka paparan tab tersebut.</div>${renderModuleGrid(ds)}</div>`;
+  document.getElementById('content').innerHTML = html;
+}
+function renderModuleGrid(list) {
+  return `<div class="module-grid">${list.map(s => `<div class="module-card" onclick="openSheet('${esc(s.name)}')"><span class="type">${moduleTypeLabel(s.type)}</span><h3>${esc(s.name)}</h3><p>${esc(s.title)}</p><div class="chip-row"><span class="chip">${esc(s.group)}</span><span class="chip ${countErrors(s)?'red':'green'}">${countErrors(s)} error</span><span class="chip">${countNumeric(s)} nilai numerik</span></div></div>`).join('')}</div>`;
+}
+function renderModules() {
+  const ds = dataSheets().filter(s => ACTIVE_GROUP === 'All' || s.group === ACTIVE_GROUP);
+  let html = `<div class="toolbar"><select class="select" onchange="ACTIVE_GROUP=this.value;renderModules();"><option>All</option>${groups.filter(g=>g!=='All').map(g=>`<option ${ACTIVE_GROUP===g?'selected':''}>${esc(g)}</option>`).join('')}</select><input class="search" placeholder="Cari tab / indikator..." oninput="filterCards(this.value)"></div>`;
+  html += `<div class="panel full"><div class="panel-title">Semua Tab Dalam Workbook</div><div class="panel-sub">17 tab data dimasukkan sebagai modul. 3 tab pembahagi kategori tidak dipaparkan sebagai data.</div>${renderModuleGrid(ds)}</div>`;
+  document.getElementById('content').innerHTML = html;
+}
+function filterCards(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('.module-card').forEach(card => card.style.display = card.innerText.toLowerCase().includes(q) ? '' : 'none');
+}
+function openSheet(name) {
+  ACTIVE_SHEET = WORKBOOK.find(s => s.name === name) || dataSheets()[0];
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.toggle('active', b.dataset.view === 'viewer'));
+  renderViewer();
+}
+function renderViewer() {
+  if (!ACTIVE_SHEET) ACTIVE_SHEET = dataSheets()[0];
+  const selector = `<select class="select" onchange="openSheet(this.value)">${dataSheets().map(s => `<option value="${esc(s.name)}" ${ACTIVE_SHEET.name===s.name?'selected':''}>${esc(s.group)} — ${esc(s.name)}</option>`).join('')}</select>`;
+  let html = `<div class="toolbar">${selector}<input class="search" placeholder="Cari dalam jadual..." oninput="filterTableRows(this.value)"></div>`;
+  html += renderSheetSummary(ACTIVE_SHEET);
+  html += `<div class="grid" style="margin-top:18px;">${renderSmartVisual(ACTIVE_SHEET)}<div class="panel"><div class="panel-title">Interpretasi Ringkas</div><div class="panel-sub">Paparan dijana mengikut bentuk data tab ini.</div>${interpretSheet(ACTIVE_SHEET)}</div></div>`;
+  html += `<div class="panel full" style="margin-top:18px;"><div class="panel-title">Jadual Data Asal</div><div class="panel-sub">Jadual ini mengekalkan struktur tab asal workbook. Nilai error ditanda merah.</div>${renderTable(ACTIVE_SHEET)}</div>`;
+  document.getElementById('content').innerHTML = html;
+}
+function renderSheetSummary(s) {
+  const years = extractYears(s);
+  return renderCards([
+    {label:'Tab', value:s.name, sub:s.group, color:'purple'},
+    {label:'Jenis data', value:moduleTypeLabel(s.type), sub:s.title, color:'green'},
+    {label:'Julat tahun', value:years.length ? `${years[0]}–${years[years.length-1]}` : '—', sub:`${years.length} tahun dikesan`, color:'amber'},
+    {label:'Ralat formula', value:countErrors(s), sub:'Perlu disemak sebelum publish', color:countErrors(s)?'red':'green'},
+  ]);
+}
+function interpretSheet(s) {
+  const errors = countErrors(s);
+  const nums = countNumeric(s);
+  let notes = [];
+  if (s.type === 'district') notes.push('Tab ini sesuai untuk ranking daerah/Kawasan, bar chart, heatmap sasaran dan jadual status.');
+  if (s.type === 'yearly') notes.push('Tab ini sesuai untuk trend tahunan, perbandingan sebelum-semasa dan pemantauan pencapaian jangka panjang.');
+  if (errors) notes.push(`${errors} sel mengandungi error formula. Dalam dashboard rasmi, error seperti #DIV/0! sebaiknya diganti kosong atau “N/A”.`);
+  if (!nums) notes.push('Tiada nilai numerik sebenar dikesan; visual analitik akan aktif selepas data dimasukkan.');
+  return `<div class="notice ${errors?'warn':''}">${notes.map(n=>`<p>${esc(n)}</p>`).join('')} </div>`;
+}
+function renderSmartVisual(s) {
+  if (s.type === 'district') return renderDistrictVisual(s);
+  if (s.type === 'yearly') return renderYearlyVisual(s);
+  return `<div class="panel"><div class="panel-title">Visual Ringkas</div><div class="panel-sub">Tab ini tidak mempunyai struktur Kawasan/Year yang jelas.</div><div class="notice">Paparan utama untuk tab ini ialah jadual data. Jika mahu carta khusus, struktur kolum perlu distandardkan.</div></div>`;
+}
+function renderDistrictVisual(s) {
+  const rows = tableRows(s);
+  const pctCol = findPercentCol(s);
+  const target = targetFromSheet(s, pctCol);
+  let data = [];
+  rows.forEach(row => {
+    const name = rowLabel(row);
+    const val = pctCol >= 0 ? toNum(row[pctCol]) : null;
+    if (name && val !== null && !/kawasan|caries|year/i.test(name)) data.push({name, val, row});
+  });
+  data = data.sort((a,b)=>b.val-a.val);
+  if (!data.length) return `<div class="panel"><div class="panel-title">Ranking Kawasan</div><div class="panel-sub">Tiada nilai % sebenar dikesan.</div><div class="notice warn">Data Kawasan wujud, tetapi nilai peratus masih kosong atau formula error. Carta ranking akan muncul selepas data dimasukkan.</div></div>`;
+  return `<div class="panel"><div class="panel-title">Ranking Kawasan</div><div class="panel-sub">Disusun berdasarkan peratus utama. Sasaran dikesan: ${target ?? 'N/A'}%</div><div class="bar-chart">${data.map(d => `<div class="bar-row"><div class="bar-label">${esc(d.name)}</div><div class="bar-track">${target!==null?`<span class="bar-target" style="left:${Math.min(100, target)}%"></span>`:''}<div class="bar-fill" style="width:${Math.min(100, Math.max(0,d.val))}%"></div></div><div class="bar-value">${fmt(d.val,true)}</div></div>`).join('')}</div></div>`;
+}
+function renderYearlyVisual(s) {
+  const rows = tableRows(s);
+  const ycol = findYearCol(s);
+  const pctCols = [];
+  for (let r=0; r<Math.min(6, rows.length); r++) {
+    rows[r].forEach((c,i)=> { if (String(c??'').includes('%')) pctCols.push(i); });
+  }
+  const col = pctCols[0] ?? -1;
+  const pts = [];
+  rows.forEach(row => { const y=toNum(row[ycol]); const v=col>=0?toNum(row[col]):null; if (y && y>=2020 && y<=2050 && v!==null) pts.push({y,v}); });
+  if (pts.length < 2) return `<div class="panel"><div class="panel-title">Trend Tahunan</div><div class="panel-sub">Tiada siri numerik mencukupi untuk carta trend.</div><div class="notice warn">Trend akan dipaparkan selepas sekurang-kurangnya dua tahun mempunyai nilai numerik sebenar.</div></div>`;
+  const minY = Math.min(...pts.map(p=>p.y)), maxY=Math.max(...pts.map(p=>p.y));
+  const maxV = Math.max(100, ...pts.map(p=>p.v)); const minV = Math.min(0, ...pts.map(p=>p.v));
+  const W=640,H=240,pad=38;
+  const xy = p => [pad + (p.y-minY)/(maxY-minY||1)*(W-pad*2), H-pad - (p.v-minV)/(maxV-minV||1)*(H-pad*2)];
+  const d = pts.map((p,i)=>`${i?'L':'M'}${xy(p)[0].toFixed(1)},${xy(p)[1].toFixed(1)}`).join(' ');
+  return `<div class="panel"><div class="panel-title">Trend Tahunan</div><div class="panel-sub">Siri pertama berasaskan kolum peratus yang dikesan.</div><svg class="line-svg" viewBox="0 0 ${W} ${H}"><line x1="${pad}" y1="${H-pad}" x2="${W-pad}" y2="${H-pad}" stroke="#cbd5e1"/><line x1="${pad}" y1="${pad}" x2="${pad}" y2="${H-pad}" stroke="#cbd5e1"/><path d="${d}" fill="none" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>${pts.map(p=>`<circle cx="${xy(p)[0]}" cy="${xy(p)[1]}" r="5" fill="#1d4ed8"/><text x="${xy(p)[0]}" y="${H-12}" text-anchor="middle" font-size="12" fill="#64748b">${p.y}</text><text x="${xy(p)[0]}" y="${xy(p)[1]-10}" text-anchor="middle" font-size="12" font-weight="700" fill="#122033">${fmt(p.v,true)}</text>`).join('')}</svg></div>`;
+}
+function renderTable(s) {
+  const rows = tableRows(s);
+  if (!rows.length) return `<div class="notice">Tiada jadual dikesan untuk tab ini.</div>`;
+  const maxCols = Math.max(...rows.map(r=>r.length));
+  return `<div class="table-wrap"><table id="dataTable"><tbody>${rows.map((row,ri)=>`<tr>${Array.from({length:maxCols},(_,ci)=>{ const v=row[ci]; const tag=ri<3?'th':'td'; const cls=isErr(v)?'err':isBlank(v)?'empty':''; return `<${tag} class="${cls}">${isBlank(v)?'—':esc(v)}</${tag}>`; }).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+function filterTableRows(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('#dataTable tr').forEach((tr,i) => { if (i<3) return; tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none'; });
+}
+function renderQuality() {
+  const ds=dataSheets();
+  const rows = ds.map(s => [s.group, s.name, moduleTypeLabel(s.type), countCells(s), countNumeric(s), countErrors(s), extractYears(s).join(', ')]);
+  let html = renderCards([
+    {label:'Tab dinilai', value:ds.length, sub:'Semua tab data', color:'purple'},
+    {label:'Jumlah error formula', value:ds.reduce((a,s)=>a+countErrors(s),0), sub:'Perlu dibersihkan di Google Sheet', color:ds.reduce((a,s)=>a+countErrors(s),0)?'red':'green'},
+    {label:'Tab tanpa nilai numerik', value:ds.filter(s=>countNumeric(s)===0).length, sub:'Carta tidak akan aktif', color:'amber'},
+    {label:'Tab district/Kawasan', value:ds.filter(s=>s.type==='district').length, sub:'Sesuai untuk ranking daerah', color:'green'},
+  ]);
+  html += `<div class="panel full"><div class="panel-title">Semakan Data Mengikut Tab</div><div class="panel-sub">Gunakan jadual ini untuk kenal pasti tab yang belum bersedia untuk paparan rasmi.</div><div class="table-wrap"><table><thead><tr><th>Kategori</th><th>Tab</th><th>Jenis</th><th>Sel berisi</th><th>Nilai numerik</th><th>Error</th><th>Tahun</th></tr></thead><tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i===5 && Number(c)>0?'err':''}">${esc(c||'—')}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
+  document.getElementById('content').innerHTML = html;
+}
+function renderSetup() {
+  const example = `const SHEET_CSV_URLS = {
+  "Overall WTP x population": "https://docs.google.com/spreadsheets/d/e/.../pub?gid=...&single=true&output=csv",
+  "% BK 16yo": "https://docs.google.com/spreadsheets/d/e/.../pub?gid=...&single=true&output=csv"
+};`;
+  let html = `<div class="panel full"><div class="panel-title">Cara Jadikan Dashboard Ini Live Dari Google Sheet</div><div class="panel-sub">Setiap tab Google Sheet mempunyai gid berbeza, jadi setiap tab perlukan satu published CSV URL.</div><div class="notice"><strong>Langkah:</strong><br>1. Buka tab Google Sheet yang hendak digunakan.<br>2. File → Share → Publish to web → pilih tab tersebut → CSV.<br>3. Salin URL dan tampal dalam objek <code>SHEET_CSV_URLS</code> di bahagian atas HTML.<br>4. Ulang untuk semua tab yang ingin dilive-kan.</div><pre style="white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:16px;padding:18px;margin-top:18px;overflow:auto;font-size:13px;line-height:1.5;">${esc(example)}</pre><div class="notice warn" style="margin-top:18px;"><strong>Cadangan penting:</strong> Untuk paparan rasmi, guna formula Google Sheet seperti <code>=IFERROR(formula, "")</code> supaya #DIV/0! tidak keluar dalam dashboard.</div></div>`;
+  document.getElementById('content').innerHTML = html;
+}
+
+function setView(view) {
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  if (view==='overview') renderOverview();
+  if (view==='modules') renderModules();
+  if (view==='viewer') renderViewer();
+  if (view==='quality') renderQuality();
+  if (view==='setup') renderSetup();
+}
+document.getElementById('mainTabs').addEventListener('click', e => { const b=e.target.closest('.nav-tab'); if (!b) return; setView(b.dataset.view); });
+
+loadLiveSources().then(() => { ACTIVE_SHEET = dataSheets()[0]; renderOverview(); });
+</script>
+</body>
+</html>
